@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -368,11 +368,12 @@
     <div class="content" id="orderContent">
       <section class="filter-card" aria-label="订单筛选">
         <div class="filter-grid">
-          <div class="filter-item"><label for="orderSearch">订单号</label><input class="input" id="orderSearch" placeholder="请输入订单号"></div>
+          <div class="filter-item"><label for="orderSearch">子订单号</label><input class="input" id="orderSearch" placeholder="请输入子订单号"></div>
           <div class="filter-item"><label for="userSearch">用户 ID</label><input class="input" id="userSearch" placeholder="请输入用户 ID"></div>
-          <div class="filter-item"><label for="vipFilter">VIP 等级</label><select class="select" id="vipFilter"><option value="">全部等级</option><option>VIP 0</option><option>VIP 1</option><option>VIP 2</option><option>VIP 3</option><option>VIP 4</option><option>VIP 5</option><option>VIP 6</option><option>VIP 7</option><option>VIP 8</option><option>VIP 9</option></select></div>
+          <div class="filter-item" id="vipFilterItem" hidden><label for="vipFilter">VIP 等级</label><select class="select" id="vipFilter"><option value="">全部等级</option></select></div>
           <div class="filter-item"><label for="statusFilter">订单状态</label><select class="select" id="statusFilter"><option value="">全部状态</option></select></div>
           <div class="filter-item"><label for="methodFilter">支付方式</label><select class="select" id="methodFilter"><option value="">全部方式</option></select></div>
+          <div class="filter-item" id="accountFilterItem"><label for="accountSearch">支付账户</label><input class="input" id="accountSearch" placeholder="银行卡/账户/钱包地址"></div>
           <div class="filter-item"><label for="currencyFilter">币种</label><select class="select" id="currencyFilter"></select></div>
           <div class="filter-item" id="networkFilterItem" hidden><label for="networkFilter">网络/供应商</label><select class="select" id="networkFilter"><option value="">全部网络</option></select></div>
           <div class="filter-item"><label>创建时间</label><div class="date-range"><input class="input" id="startDate" type="date"><span>至</span><input class="input" id="endDate" type="date"></div></div>
@@ -459,14 +460,29 @@
     </div>
     <!-- 自研小游戏配置页 -->
     <div class="content" id="sgPageContent" style="display:none">
+      <div class="cfg-card" style="margin-bottom:16px">
+        <div style="padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <label style="font-size:12px;color:var(--muted);font-weight:600">游戏 ID</label>
+            <input class="input" id="sgIdSearch" placeholder="搜索 ID" style="width:160px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <label style="font-size:12px;color:var(--muted);font-weight:600">游戏名称</label>
+            <input class="input" id="sgNameSearch" placeholder="搜索游戏名称" style="width:190px">
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <button class="btn" id="sgResetBtn" type="button">重置</button>
+            <button class="btn primary" id="sgSearchBtn" type="button">查询</button>
+          </div>
+        </div>
+      </div>
       <div class="cfg-card">
         <div class="tbl-toolbar">
           <span style="font-weight:600;font-size:15px">自研小游戏列表</span>
-          <button class="btn primary" id="sgAddBtn" type="button">+ 新增游戏</button>
         </div>
         <div class="table-wrap">
           <table id="sgTable">
-            <thead><tr><th>ID</th><th>游戏名称</th><th>入口图</th><th>RTP</th><th>页签类型</th><th>游戏SEO文本</th><th>排序</th><th>状态</th><th>操作</th></tr></thead>
+            <thead><tr><th>ID</th><th>游戏名称</th><th>Icon</th><th>入口图</th><th>RTP</th><th>页签类型</th><th>游戏SEO文本</th><th>排序</th><th>状态</th><th>操作</th></tr></thead>
             <tbody id="sgBody"></tbody>
           </table>
         </div>
@@ -568,12 +584,12 @@
   <script>
     (() => {
       const paymentData = [
-        { orderNo:'P202609110001', parentOrderNo:'PP20260911001', subOrderNo:'PS202609110001', userId:'U1000174', channel:'PayPal', method:'电子钱包', currency:'CC', network:'', amount:1000, bonus:0, actual:1000, exchangeRate:'1 CC = 1.0000 USD', coinAmount:'1000 CC', status:'支付成功', version:'3.2.1', tds:'3DS2 通过', created:'2026-09-11 16:35:20', updated:'2026-09-11 16:35:20', thirdNo:'PAY-7G861059H7473093U', product:'260', merchant:'DIGITIME-TEST', route:'pp_dt_dt_pp_h5', vip:'VIP 7' },
-        { orderNo:'P202609110002', parentOrderNo:'PP20260911002', subOrderNo:'PS202609110002', userId:'U1002498', channel:'Credit Card', method:'银行卡', currency:'CC', network:'', amount:100, bonus:0, actual:100, exchangeRate:'1 CC = 1.0000 USD', coinAmount:'100 CC', status:'支付成功', version:'3.1.5', tds:'3DS2 通过', created:'2026-09-11 16:29:09', updated:'2026-09-11 16:29:09', thirdNo:'G_JN_P_LWF6MGCABASQ5UH0', product:'260', merchant:'Smartedgesudio', route:'w_tesdd1_cc_d', vip:'VIP 2' },
-        { orderNo:'P202609110003', parentOrderNo:'PP20260911003', subOrderNo:'PS202609110003', userId:'U1000174', channel:'Crypto', method:'虚拟币', currency:'SOL', network:'Solana', amount:9.2, bonus:0, actual:9.2, exchangeRate:'1 SOL = 105.54 USD', coinAmount:'9.2 SOL', status:'处理中', version:'3.2.1', tds:'无', created:'2026-09-11 14:11:07', updated:'2026-09-11 14:11:08', thirdNo:'PAY-VDAZ5DYB4JVYFEEW', product:'260', merchant:'MoonPay Inc', route:'mp_sol_spl_h5', vip:'VIP 7' },
-        { orderNo:'P202609110004', parentOrderNo:'PP20260911004', subOrderNo:'PS202609110004', userId:'U1002487', channel:'Credit Card', method:'银行卡', currency:'CC', network:'', amount:5, bonus:0, actual:5, exchangeRate:'1 CC = 1.0000 USD', coinAmount:'5 CC', status:'支付失败', version:'3.2.0', tds:'无', created:'2026-09-11 11:52:25', updated:'2026-09-11 11:52:25', thirdNo:'G_JN_P_LYNC0D528A', product:'260', merchant:'Smartedgesudio', route:'w_tesdd1_cc_d', vip:'VIP 0' },
-        { orderNo:'P202609100005', parentOrderNo:'PP20260910005', subOrderNo:'PS202609100005', userId:'U1000195', channel:'Crypto', method:'虚拟币', currency:'USDT', network:'ERC-20 (Ethereum)', amount:10.01, bonus:0, actual:10.0073, exchangeRate:'1 USDT = 1.0027 USD', coinAmount:'10 USDT', status:'支付成功', version:'3.1.8', tds:'无', created:'2026-09-10 16:03:39', updated:'2026-09-10 16:03:39', thirdNo:'PAGE-7400811016719D91', product:'260', merchant:'JIEYOU-BREEZE', route:'ap_erc20_usdt_h5', vip:'VIP 5' },
-        { orderNo:'P202609100006', parentOrderNo:'PP20260910006', subOrderNo:'PS202609100006', userId:'U1000134', channel:'Crypto', method:'虚拟币', currency:'ETH', network:'Ethereum', amount:0.0339, bonus:0, actual:0.0339, exchangeRate:'1 ETH = 2483.45 USD', coinAmount:'0.0339 ETH', status:'已关闭', version:'3.2.0', tds:'无', created:'2026-09-10 15:45:11', updated:'2026-09-10 15:45:12', thirdNo:'PAY-ZNZHFFIB3QGIVHU5', product:'260', merchant:'Alchemy Pay', route:'ap_erc20_eth_h5', vip:'VIP 3' }
+        { orderNo:'P202609110001', parentOrderNo:'PP20260911001', subOrderNo:'PS202609110001', userId:'U1000174', channel:'PayPal', method:'电子钱包', account:'u****174@paypal.com', currency:'CC', network:'', amount:1000, bonus:0, actual:1000, exchangeRate:'1 CC = 1.0000 USD', coinAmount:'1000 CC', status:'支付成功', version:'3.2.1', tds:'3DS2 通过', created:'2026-09-11 16:35:20', updated:'2026-09-11 16:35:20', thirdNo:'PAY-7G861059H7473093U', product:'260', merchant:'DIGITIME-TEST', route:'pp_dt_dt_pp_h5', vip:'VIP 7' },
+        { orderNo:'P202609110002', parentOrderNo:'PP20260911002', subOrderNo:'PS202609110002', userId:'U1002498', channel:'Credit Card', method:'银行卡', account:'4138 **** **** 9902', currency:'CC', network:'', amount:100, bonus:0, actual:100, exchangeRate:'1 CC = 1.0000 USD', coinAmount:'100 CC', status:'支付成功', version:'3.1.5', tds:'3DS2 通过', created:'2026-09-11 16:29:09', updated:'2026-09-11 16:29:09', thirdNo:'G_JN_P_LWF6MGCABASQ5UH0', product:'260', merchant:'Smartedgesudio', route:'w_tesdd1_cc_d', vip:'VIP 2' },
+        { orderNo:'P202609110003', parentOrderNo:'PP20260911003', subOrderNo:'PS202609110003', userId:'U1000174', channel:'Crypto', method:'虚拟币', account:'7xKpFh2mNQ3dR8sYwLvCjE5bT9uG4aZoXkMpAqBrN2', currency:'SOL', network:'Solana', amount:9.2, bonus:0, actual:9.2, exchangeRate:'1 SOL = 105.54 USD', coinAmount:'9.2 SOL', status:'处理中', version:'3.2.1', tds:'无', created:'2026-09-11 14:11:07', updated:'2026-09-11 14:11:08', thirdNo:'PAY-VDAZ5DYB4JVYFEEW', product:'260', merchant:'MoonPay Inc', route:'mp_sol_spl_h5', vip:'VIP 7' },
+        { orderNo:'P202609110004', parentOrderNo:'PP20260911004', subOrderNo:'PS202609110004', userId:'U1002487', channel:'Credit Card', method:'银行卡', account:'5200 **** **** 0007', currency:'CC', network:'', amount:5, bonus:0, actual:5, exchangeRate:'1 CC = 1.0000 USD', coinAmount:'5 CC', status:'支付失败', version:'3.2.0', tds:'无', created:'2026-09-11 11:52:25', updated:'2026-09-11 11:52:25', thirdNo:'G_JN_P_LYNC0D528A', product:'260', merchant:'Smartedgesudio', route:'w_tesdd1_cc_d', vip:'VIP 0' },
+        { orderNo:'P202609100005', parentOrderNo:'PP20260910005', subOrderNo:'PS202609100005', userId:'U1000195', channel:'Crypto', method:'虚拟币', account:'0x4B20F0e2fF9c3A2E1d5C8b9B6A7F3C4D2E1F0c3A', currency:'USDT', network:'ERC-20 (Ethereum)', amount:10.01, bonus:0, actual:10.0073, exchangeRate:'1 USDT = 1.0027 USD', coinAmount:'10 USDT', status:'支付成功', version:'3.1.8', tds:'无', created:'2026-09-10 16:03:39', updated:'2026-09-10 16:03:39', thirdNo:'PAGE-7400811016719D91', product:'260', merchant:'JIEYOU-BREEZE', route:'ap_erc20_usdt_h5', vip:'VIP 5' },
+        { orderNo:'P202609100006', parentOrderNo:'PP20260910006', subOrderNo:'PS202609100006', userId:'U1000134', channel:'Crypto', method:'虚拟币', account:'0x9cD3f2A1B8E7C6D4F5A2B9C3E1D8F0A7B4C2D1A', currency:'ETH', network:'Ethereum', amount:0.0339, bonus:0, actual:0.0339, exchangeRate:'1 ETH = 2483.45 USD', coinAmount:'0.0339 ETH', status:'已关闭', version:'3.2.0', tds:'无', created:'2026-09-10 15:45:11', updated:'2026-09-10 15:45:12', thirdNo:'PAY-ZNZHFFIB3QGIVHU5', product:'260', merchant:'Alchemy Pay', route:'ap_erc20_eth_h5', vip:'VIP 3' }
       ];
       const withdrawalData = [
         { orderNo:'W202609090001', userId:'U10002423', account:'Aa12345678', method:'电子钱包', channel:'PayPal', network:'', currency:'USD', amount:2.9992, fee:.99974, actual:1.9995, exchangeRate:'1 CC = 1.0000 USD', balanceStatus:'已扣款', status:'打款成功', audit:'自动审核通过', created:'2026-09-09 16:13:12', payTime:'2026-09-09 16:14:04', completed:'2026-09-09 16:14:04', country:'US', vip:'VIP 1' },
@@ -581,23 +597,23 @@
         { orderNo:'W202609080003', userId:'U1000174', account:'dwaazd@test.com', method:'电子钱包', channel:'PayPal', network:'', currency:'USD', amount:22, fee:0, actual:22, exchangeRate:'1 CC = 1.0000 USD', balanceStatus:'已扣款', status:'审核中', audit:'待审核', created:'2026-09-08 17:30:00', payTime:'-', completed:'-', country:'US', vip:'VIP 7' },
         { orderNo:'W202609070004', userId:'U1000195', account:'dwaazd@test.com', method:'电子钱包', channel:'PayPal', network:'', currency:'USD', amount:333, fee:0, actual:333, exchangeRate:'1 CC = 1.0000 USD', balanceStatus:'已扣款', status:'打款中', audit:'自动审核通过', created:'2026-09-07 15:21:14', payTime:'-', completed:'-', country:'HK', vip:'VIP 5' },
         { orderNo:'W202609070005', userId:'U1000195', account:'dwaazd@test.com', method:'电子钱包', channel:'PayPal', network:'', currency:'USD', amount:333, fee:0, actual:333, exchangeRate:'1 CC = 1.0000 USD', balanceStatus:'退还扣款', status:'已取消', audit:'自动审核通过', created:'2026-09-07 15:03:14', payTime:'-', completed:'-', country:'HK', vip:'VIP 5' },
-        { orderNo:'W202609060006', userId:'U1000195', account:'0x95B5c2d967EE27C21F9C5bd28a4924f32c7b0919', method:'虚拟币', channel:'Crypto', network:'TRC-20 (TRON)', currency:'USDT', amount:5005.3242, fee:.999865, actual:5004.3243, exchangeRate:'1 USDT = 0.9998 USD', balanceStatus:'退还扣款', status:'打款失败', audit:'人工审核通过', created:'2026-09-06 14:31:10', payTime:'2026-09-06 14:35:18', completed:'2026-09-06 14:35:18', country:'HK', vip:'VIP 5' }
+        { orderNo:'W202609060006', userId:'U1000195', account:'0x95B5c2d967EE27C21F9C5bd28a4924f32c7b0919', method:'虚拟币', channel:'Crypto', network:'TRC-20 (TRON)', currency:'USDT', feeCurrency:'USDT', amount:5005.3242, fee:.999865, actual:5004.3243, exchangeRate:'1 USDT = 0.9998 USD', balanceStatus:'退还扣款', status:'打款失败', audit:'人工审核通过', created:'2026-09-06 14:31:10', payTime:'2026-09-06 14:35:18', completed:'2026-09-06 14:35:18', country:'HK', vip:'VIP 5' }
       ];
 
       const configs = {
         payment: {
-          title:'支付订单', table:'支付订单列表', methodLabel:'支付方式',
+          title:'支付订单', table:'支付订单列表', methodLabel:'支付方式', accountLabel:'支付账户', orderLabel:'子订单号',
           statuses:['支付成功','处理中','支付失败','已关闭'],
-          methods:['电子钱包','银行卡','虚拟币'],
+          methods:['deposit','buy crypto','purchase'],
           data:paymentData,
-          head:['订单号','用户 ID','VIP 等级','支付渠道','支付方式','订单信息','赠送','实际支付','订单状态','创建时间','更新时间','操作']
+          head:['子订单号','用户 ID','订单金额','赠送','汇率快照','支付账户','支付渠道','支付方式','订单状态','创建时间','更新时间','操作']
         },
         withdrawal: {
-          title:'提现订单', table:'提现订单列表', methodLabel:'提现方式',
+          title:'提现订单', table:'提现订单列表', methodLabel:'提现方式', accountLabel:'提现账户', orderLabel:'订单号',
           statuses:['审核中','打款中','打款成功','打款失败','已取消'],
-          methods:['电子钱包','银行卡','虚拟币'],
+          methods:['Withdraw','Redeem'],
           data:withdrawalData,
-          head:['提现订单号','用户 ID','VIP 等级','提现账户','提现方式','提现渠道','申请信息','手续费','实际到账','打款时间','订单状态','审核状态','创建时间','操作']
+          head:['提现订单号','用户 ID','VIP 等级','申请金额','手续费','实际到账','提现方式','提现账户','提现渠道','打款时间','订单状态','审核状态','创建时间','操作']
         }
       };
       let currentPage = location.hash === '#withdrawal' ? 'withdrawal' : location.hash === '#config' ? 'config' : 'payment';
@@ -1212,39 +1228,51 @@
 
       // ── 自研小游戏配置页 ──────────────────────────────────────────────────
       let sgData = [
-        { id:'SG001', name:'Dice',   rtp:99,   tabType:'originals', imgData:null, color:'#667eea', sort:1, enabled:true,  desc:'<p>经典骰子游戏，简单易上手，高 RTP 保障玩家体验。</p>' },
-        { id:'SG002', name:'Mines',  rtp:97,   tabType:'originals', imgData:null, color:'#f093fb', sort:2, enabled:true,  desc:'<p>扫雷玩法变体，自定义炸弹数量，每一步都是冒险。</p>' },
-        { id:'SG003', name:'Limbo',  rtp:99,   tabType:'originals', imgData:null, color:'#4facfe', sort:3, enabled:true,  desc:'' },
-        { id:'SG004', name:'Plinko', rtp:97.5, tabType:'new',       imgData:null, color:'#43e97b', sort:4, enabled:false, desc:'' },
+        { id:'SG001', name:'Dice',   rtp:99,   tabType:['originals'], iconData:null, iconColor:'#667eea', imgData:null, color:'#667eea', sort:1, enabled:true,  desc:'<p>经典骰子游戏，简单易上手，高 RTP 保障玩家体验。</p>' },
+        { id:'SG002', name:'Mines',  rtp:97,   tabType:['originals'], iconData:null, iconColor:'#f093fb', imgData:null, color:'#f093fb', sort:2, enabled:true,  desc:'<p>扫雷玩法变体，自定义炸弹数量，每一步都是冒险。</p>' },
+        { id:'SG003', name:'Limbo',  rtp:99,   tabType:['originals'], iconData:null, iconColor:'#4facfe', imgData:null, color:'#4facfe', sort:3, enabled:true,  desc:'' },
+        { id:'SG004', name:'Plinko', rtp:97.5, tabType:['new'],       iconData:null, iconColor:'#43e97b', imgData:null, color:'#43e97b', sort:4, enabled:false, desc:'' },
       ];
       let editingSgId = null;
       let _sgImg = null;
+      let _sgIcon = null;
       let _sgListenerAdded = false;
 
       const SG_TAB_LABELS = { originals:'Craybet Originals', new:'最新上线', hot:'热门推荐', all:'全部' };
 
       function renderSgTable() {
+        const idQ   = (document.getElementById('sgIdSearch')   || {value:''}).value.trim().toLowerCase();
+        const nameQ = (document.getElementById('sgNameSearch') || {value:''}).value.trim().toLowerCase();
+        const rows  = sgData.filter(r =>
+          (!idQ   || r.id.toLowerCase().includes(idQ)) &&
+          (!nameQ || r.name.toLowerCase().includes(nameQ))
+        );
         const tbody = document.getElementById('sgBody');
-        tbody.innerHTML = sgData.map(r => {
+        tbody.innerHTML = rows.map(r => {
+          const icon = r.iconData
+            ? `<img src="${r.iconData}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;display:block">`
+            : `<div style="width:28px;height:28px;border-radius:6px;background:${r.iconColor};display:inline-block"></div>`;
           const thumb = r.imgData
             ? `<img src="${r.imgData}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;display:block">`
             : `<div style="width:44px;height:44px;border-radius:8px;background:${r.color};display:inline-block"></div>`;
-          const tabLabel = SG_TAB_LABELS[r.tabType] || r.tabType;
+          const tabBadges = (Array.isArray(r.tabType) ? r.tabType : [r.tabType])
+            .map(t => `<span class="btn-badge-yes" style="margin-right:3px">${SG_TAB_LABELS[t]||t}</span>`).join('');
           const rawDesc = r.desc ? r.desc.replace(/<[^>]+>/g, '') : '';
           const descText = rawDesc.length > 28 ? rawDesc.slice(0, 28) + '…' : (rawDesc || '—');
+          const statusBadge = r.enabled
+            ? `<span class="btn-badge-yes">启用</span>`
+            : `<span class="btn-badge-no">禁用</span>`;
           return `<tr>
             <td>${r.id}</td>
             <td style="font-weight:600">${r.name}</td>
+            <td>${icon}</td>
             <td>${thumb}</td>
             <td>${r.rtp}%</td>
-            <td><span class="btn-badge-yes">${tabLabel}</span></td>
+            <td>${tabBadges}</td>
             <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12px">${descText}</td>
             <td>${r.sort}</td>
-            <td><label class="tog"><input type="checkbox" ${r.enabled?'checked':''} data-sg-tog="${r.id}"><span class="tog-track"></span></label></td>
-            <td style="display:flex;gap:6px;align-items:center">
-              <button class="btn" data-sg-edit="${r.id}">编辑</button>
-              <button class="btn" style="color:var(--red)" data-sg-del="${r.id}">删除</button>
-            </td>
+            <td>${statusBadge}</td>
+            <td><button class="btn" data-sg-edit="${r.id}">编辑</button></td>
           </tr>`;
         }).join('');
       }
@@ -1262,18 +1290,35 @@
         }
       }
 
+      function _setSgIconState(iconData) {
+        const preview     = document.getElementById('sgIconPreview');
+        const placeholder = document.getElementById('sgIconPlaceholder');
+        const hint        = document.getElementById('sgIconReplaceHint');
+        if (iconData) {
+          preview.src = iconData; preview.hidden = false;
+          placeholder.hidden = true; hint.hidden = false;
+        } else {
+          preview.src = ''; preview.hidden = true;
+          placeholder.hidden = false; hint.hidden = true;
+        }
+      }
+
       function openSgModal(id) {
-        editingSgId = id || null;
-        const row = id ? sgData.find(g => g.id === id) : null;
-        _sgImg = row ? (row.imgData || null) : null;
-        document.getElementById('sgModalTitle').textContent = id ? '编辑游戏' : '新增游戏';
-        document.getElementById('sgName').value    = row ? row.name : '';
-        document.getElementById('sgRtp').value     = row ? row.rtp  : '';
-        document.getElementById('sgTabType').value = row ? row.tabType : 'originals';
-        document.getElementById('sgSort').value    = row ? row.sort : sgData.length + 1;
-        document.getElementById('sgEnabled').checked = row ? !!row.enabled : true;
-        document.getElementById('sgDescEditor').innerHTML = row ? (row.desc || '') : '';
+        editingSgId = id;
+        const row = sgData.find(g => g.id === id);
+        if (!row) return;
+        _sgImg  = row.imgData  || null;
+        _sgIcon = row.iconData || null;
+        document.getElementById('sgModalTitle').textContent = '编辑游戏';
+        document.getElementById('sgName').value  = row.name;
+        document.getElementById('sgRtp').value   = row.rtp;
+        document.getElementById('sgSort').value  = row.sort;
+        document.getElementById('sgEnabled').checked = !!row.enabled;
+        document.getElementById('sgDescEditor').innerHTML = row.desc || '';
+        const tabs = Array.isArray(row.tabType) ? row.tabType : [row.tabType];
+        document.getElementById('sgTabType').value = tabs.join(',');
         _setSgImgState(_sgImg);
+        _setSgIconState(_sgIcon);
         document.getElementById('sgModal').classList.add('open');
       }
 
@@ -1283,26 +1328,26 @@
         const name = document.getElementById('sgName').value.trim();
         if (!name) { alert('请填写游戏名称'); return; }
         const rtp     = parseFloat(document.getElementById('sgRtp').value) || 0;
-        const tabType = document.getElementById('sgTabType').value;
+        const tabType = document.getElementById('sgTabType').value.split(',').map(s => s.trim()).filter(Boolean);
         const sort    = parseInt(document.getElementById('sgSort').value) || sgData.length + 1;
         const enabled = document.getElementById('sgEnabled').checked;
         const desc    = document.getElementById('sgDescEditor').innerHTML.replace(/^(<br>|<p><br><\/p>|\s)+|(<br>|<p><br><\/p>|\s)+$/g,'');
-        if (editingSgId) {
-          const row = sgData.find(g => g.id === editingSgId);
-          if (row) Object.assign(row, {name, rtp, tabType, sort, imgData:_sgImg, enabled, desc});
-        } else {
-          const newId = 'SG' + String(Date.now()).slice(-3);
-          sgData.push({id:newId, name, rtp, tabType, imgData:_sgImg, color:'#a8c0ff', sort, enabled, desc});
-        }
+        const row = sgData.find(g => g.id === editingSgId);
+        if (row) Object.assign(row, {name, rtp, tabType, sort, imgData:_sgImg, iconData:_sgIcon, enabled, desc});
         renderSgTable();
         closeSgModal();
-        showToast(editingSgId ? '游戏已更新' : '游戏已添加');
+        showToast('游戏已更新');
       }
 
       function bindSgEvents() {
         if (_sgListenerAdded) return;
         _sgListenerAdded = true;
-        document.getElementById('sgAddBtn').addEventListener('click', () => openSgModal(null));
+        document.getElementById('sgSearchBtn').addEventListener('click', renderSgTable);
+        document.getElementById('sgResetBtn').addEventListener('click', () => {
+          document.getElementById('sgIdSearch').value = '';
+          document.getElementById('sgNameSearch').value = '';
+          renderSgTable();
+        });
         document.getElementById('sgSaveBtn').addEventListener('click', saveSg);
         document.getElementById('sgCloseBtn').addEventListener('click', closeSgModal);
         document.getElementById('sgModal').addEventListener('click', e => {
@@ -1317,19 +1362,20 @@
         document.getElementById('sgPageContent').addEventListener('click', e => {
           const editBtn = e.target.closest('[data-sg-edit]');
           if (editBtn) { openSgModal(editBtn.dataset.sgEdit); return; }
-          const delBtn = e.target.closest('[data-sg-del]');
-          if (delBtn) { sgData = sgData.filter(g => g.id !== delBtn.dataset.sgDel); renderSgTable(); showToast('已删除'); return; }
-          if (e.target.closest('#sgImgZone')) { document.getElementById('sgImgUpload').click(); return; }
-        });
-        document.getElementById('sgPageContent').addEventListener('change', e => {
-          const tog = e.target.closest('[data-sg-tog]');
-          if (tog) { const row = sgData.find(g => g.id === tog.dataset.sgTog); if (row) row.enabled = e.target.checked; }
+          if (e.target.closest('#sgImgZone'))  { document.getElementById('sgImgUpload').click();  return; }
+          if (e.target.closest('#sgIconZone')) { document.getElementById('sgIconUpload').click(); return; }
         });
         document.getElementById('sgModal').addEventListener('change', e => {
           if (e.target.id === 'sgImgUpload') {
             const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = ev => { _sgImg = ev.target.result; _setSgImgState(_sgImg); };
+            reader.readAsDataURL(file);
+          }
+          if (e.target.id === 'sgIconUpload') {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => { _sgIcon = ev.target.result; _setSgIconState(_sgIcon); };
             reader.readAsDataURL(file);
           }
         });
@@ -2067,8 +2113,19 @@
         els.breadcrumb.textContent = `首页 / 资产管理 / ${config.title}`;
         els.tableTitle.textContent = config.table;
         document.querySelector('label[for="methodFilter"]').textContent = config.methodLabel;
+        document.querySelector('label[for="accountSearch"]').textContent = config.accountLabel;
+        document.querySelector('label[for="orderSearch"]').textContent = config.orderLabel;
+        els.orderSearch.placeholder = `请输入${config.orderLabel}`;
         setOptions(els.statusFilter,config.statuses,'全部状态');
         setOptions(els.methodFilter,config.methods,`全部${config.methodLabel}`);
+        const vipFilterItem = document.getElementById('vipFilterItem');
+        if (page === 'withdrawal') {
+          vipFilterItem.hidden = false;
+          setOptions(els.vipFilter,['VIP 0','VIP 1','VIP 2','VIP 3','VIP 4','VIP 5','VIP 6','VIP 7'],'全部等级');
+        } else {
+          vipFilterItem.hidden = true;
+          els.vipFilter.value = '';
+        }
         els.currencyFilter.innerHTML = page === 'payment'
           ? `<option value="">全部币种</option><optgroup label="Crypto"><option>USDC</option><option>USDT</option><option>ETH</option><option>SOL</option><option>TRX</option><option>BNB</option><option>POL</option></optgroup><optgroup label="Fiat"><option>CC</option></optgroup>`
           : `<option value="">全部币种</option>`;
@@ -2081,10 +2138,15 @@
       }
 
       function renderPaymentRow(row) {
+        // 从 exchangeRate 解析汇率数值，如 "1 SOL = 105.54 USD" → 105.54
+        const rateNum = parseFloat((row.exchangeRate || '').replace(/.*=\s*/,'')) || 1;
+        const amountUsd = money(row.amount * rateNum);
+        const bonusUsd  = money(row.bonus  * rateNum);
+        const payMethod = row.currency === 'CC' ? 'purchase' : row.channel === 'Crypto' ? 'buy crypto' : 'deposit';
         return `<tr data-order="${row.orderNo}">
           <td>
             <div class="order-cell">
-              <span class="order-no">${row.orderNo}</span>
+              <span class="order-no">${row.subOrderNo}</span>
               <button class="pop-trigger" type="button" aria-label="查看关联订单号">i</button>
               <div class="order-popover">
                 <div class="pop-row"><span class="pop-label">父订单号</span><span class="pop-val">${row.parentOrderNo}</span></div>
@@ -2094,15 +2156,18 @@
             </div>
           </td>
           <td><button class="btn link user-link" data-uid="${row.userId}">${row.userId}</button></td>
-          <td>${row.vip}</td>
-          <td>${row.channel}${row.network ? `<br><span class="subtext">${row.network}</span>` : ''}</td>
-          <td>${row.method}</td>
           <td>
             <span class="amount">${row.coinAmount}</span>
-            <span class="subtext">汇率快照：${row.exchangeRate}</span>
+            <span class="subtext">${amountUsd} USD</span>
           </td>
-          <td>${money(row.bonus)} ${row.currency}</td>
-          <td><span class="amount">${money(row.actual)} ${row.currency}</span></td>
+          <td>
+            <span>${money(row.bonus)} ${row.currency}</span>
+            <span class="subtext">${bonusUsd} USD</span>
+          </td>
+          <td>${row.exchangeRate}</td>
+          <td>${row.account || '—'}</td>
+          <td>${row.channel}${row.network ? `<br><span class="subtext">${row.network}</span>` : ''}</td>
+          <td>${payMethod}</td>
           <td>${tag(row.status)}</td>
           <td>${row.created}</td>
           <td>${row.updated}</td>
@@ -2111,22 +2176,34 @@
       }
 
       function renderWithdrawalRow(row) {
+        const rateNum = parseFloat((row.exchangeRate || '').replace(/.*=\s*/,'')) || 1;
+        const amountUsd = money(row.amount * rateNum);
+        const feeUsd    = money(row.fee    * rateNum);
+        const actualUsd = money(row.actual * rateNum);
+        const amountCcy = row.channel === 'Crypto' ? row.currency : 'CC';
+        const feeCcy    = row.feeCurrency || row.currency;
         return `<tr data-order="${row.orderNo}">
           <td><span class="order-no">${row.orderNo}</span></td>
           <td><button class="btn link user-link" data-uid="${row.userId}">${row.userId}</button></td>
           <td>${row.vip}</td>
-          <td>${row.account}</td>
-          <td>${row.method}</td>
-          <td>${row.channel}${row.network ? `<br><span class="subtext">${row.network}</span>` : ''}</td>
           <td>
-            <span class="amount">${money(row.amount)} CC</span>
-            <span class="subtext">汇率快照：${row.exchangeRate}</span>
+            <span class="amount">${money(row.amount)} ${amountCcy}</span>
+            <span class="subtext">${amountUsd} USD</span>
           </td>
-          <td>${money(row.fee)} ${row.currency}</td>
-          <td><span class="amount">${money(row.actual)} ${row.currency}</span></td>
+          <td>
+            <span>${money(row.fee)} ${feeCcy}</span>
+            <span class="subtext">${feeUsd} USD</span>
+          </td>
+          <td>
+            <span class="amount">${money(row.actual)} ${feeCcy}</span>
+            <span class="subtext">${actualUsd} USD</span>
+          </td>
+          <td>${row.channel === 'Crypto' ? 'Withdraw' : 'Redeem'}</td>
+          <td>${row.account}</td>
+          <td>${row.channel}${row.network ? `<br><span class="subtext">${row.network}</span>` : ''}</td>
           <td>${row.payTime}</td>
-          <td>${tag(row.status)}</td>
-          <td>${tag(row.audit)}<span class="subtext">余额状态：${row.balanceStatus}</span></td>
+          <td>${tag(row.status)}<span class="subtext">余额状态：${row.balanceStatus}</span></td>
+          <td>${tag(row.audit)}</td>
           <td>${row.created}</td>
           <td><div class="op"><button class="btn link view-detail">查看详情</button></div></td>
         </tr>`;
@@ -2150,23 +2227,24 @@
         const user = els.userSearch.value.trim().toLowerCase();
         const rows = source.filter(row => {
           const date = row.created.slice(0,10);
-          return (!order || row.orderNo.toLowerCase().includes(order))
+          return (!order || (currentPage === 'payment' ? row.subOrderNo : row.orderNo).toLowerCase().includes(order))
             && (!user || row.userId.toLowerCase().includes(user))
-            && (!els.vipFilter.value || row.vip===els.vipFilter.value)
             && (!els.statusFilter.value || row.status===els.statusFilter.value)
             && (!els.methodFilter.value || row.method===els.methodFilter.value)
             && (!els.currencyFilter.value || row.currency===els.currencyFilter.value)
             && (!els.networkFilter?.value || row.network===els.networkFilter.value)
+            && (currentPage !== 'withdrawal' || !els.vipFilter?.value || row.vip===els.vipFilter.value)
             && (!els.startDate.value || date>=els.startDate.value)
             && (!els.endDate.value || date<=els.endDate.value);
         });
         render(rows);
-        showToast(`已查询到 ${rows.length} 条订单`);
+        showToast(`已查询到 ${rows.length} 条订单哦`);
       }
 
       function resetFilters(renderNow=true) {
-        [els.orderSearch,els.userSearch,els.vipFilter,els.statusFilter,els.methodFilter,els.currencyFilter,els.startDate,els.endDate].forEach(el=>el.value='');
+        [els.orderSearch,els.userSearch,els.statusFilter,els.methodFilter,els.currencyFilter,els.startDate,els.endDate].forEach(el=>el.value='');
         if (els.networkFilter) els.networkFilter.value = '';
+        if (els.vipFilter) els.vipFilter.value = '';
         document.getElementById('networkFilterItem').hidden = true;
         if(renderNow) render(configs[currentPage].data);
       }
@@ -2197,21 +2275,22 @@
 
         if (isPayment) {
           els.drawerTitle.textContent = '支付信息';
+          const rateNum = parseFloat((row.exchangeRate || '').replace(/.*=\s*/,'')) || 1;
+          const amountUsd = money(row.amount * rateNum);
+          const bonusUsd  = money(row.bonus  * rateNum);
           const base = [
             ['父订单号',row.parentOrderNo],['子订单号',row.subOrderNo],
             ['三方订单号',row.thirdNo],['用户 ID',row.userId],
             ['产品 ID',row.product],['支付渠道',row.channel],
             ['网络/供应商',row.network||'—'],
-            ['支付方式',row.method],['商户名称',row.merchant],
+            ['支付方式',row.currency === 'CC' ? 'purchase' : row.channel === 'Crypto' ? 'buy crypto' : 'deposit'],['支付账户',row.account||'—'],['商户名称',row.merchant],
             ['渠道路由',row.route]
           ];
           const finance = [
-            ['订单金额',`${money(row.amount)} ${row.currency}`],
-            ['赠送金额',`${money(row.bonus)} ${row.currency}`],
-            ['货币数量购买',row.coinAmount],
+            ['订单金额',`${money(row.amount)} ${row.currency}（=${amountUsd}USD）`],
+            ['赠送金额',`${money(row.bonus)} ${row.currency}（=${bonusUsd}USD）`],
             ['汇率快照',row.exchangeRate],
-            ['实际支付',`${money(row.actual)} ${row.currency}`],
-            ['币种',row.currency]
+            ['实际支付币种',row.currency]
           ];
           const times = [['创建时间',row.created],['更新时间',row.updated]];
           const extra = [['版本',row.version],['3DS 信息',row.tds]];
@@ -2225,19 +2304,25 @@
           els.drawerTitle.textContent = '提现订单详情';
           const totalDeposit = paymentData.filter(r=>r.userId===row.userId&&r.status==='支付成功').reduce((s,r)=>s+r.actual,0);
           const totalWithdraw = withdrawalData.filter(r=>r.userId===row.userId&&r.status==='打款成功').reduce((s,r)=>s+r.actual,0);
+          const wRateNum = parseFloat((row.exchangeRate || '').replace(/.*=\s*/,'')) || 1;
+          const wAmountUsd = money(row.amount * wRateNum);
+          const wFeeUsd    = money(row.fee    * wRateNum);
+          const wActualUsd = money(row.actual * wRateNum);
+          const wAmountCcy = row.channel === 'Crypto' ? row.currency : 'CC';
+          const wFeeCcy    = row.feeCurrency || row.currency;
           const base = [
             ['提现订单号',row.orderNo],['用户 ID',row.userId],
             ['用户等级',row.vip],['国家/地区',row.country],
-            ['提现账户',row.account],['提现方式',row.method],
+            ['提现账户',row.account],['提现方式',row.channel === 'Crypto' ? 'Withdraw' : 'Redeem'],
             ['打款渠道',row.channel],['网络/供应商',row.network||'—'],['审核状态',row.audit]
           ];
           const finance = [
-            ['申请金额',`${money(row.amount)} ${row.currency}`],
-            ['手续费',`${money(row.fee)} ${row.currency}`],
+            ['申请金额',`${money(row.amount)}${wAmountCcy}（=${wAmountUsd}USD）`],
+            ['手续费',`${money(row.fee)}${wFeeCcy}（=${wFeeUsd}USD）`],
             ['汇率快照',row.exchangeRate],
-            ['实际到账',`${money(row.actual)} ${row.currency}`],
+            ['实际到账',`${money(row.actual)}${wFeeCcy}（=${wActualUsd}USD）`],
             ['余额状态',row.balanceStatus],
-            ['币种',row.currency]
+            ['币种',wAmountCcy]
           ];
           const times = [['创建时间',row.created],['打款时间',row.payTime]];
           els.drawerBody.innerHTML = `
@@ -2513,12 +2598,8 @@
           </div>
           <div class="frm-item">
             <label style="font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:6px">页签类型</label>
-            <select class="frm-select" id="sgTabType">
-              <option value="originals">Craybet Originals</option>
-              <option value="new">最新上线</option>
-              <option value="hot">热门推荐</option>
-              <option value="all">全部</option>
-            </select>
+            <input class="frm-input" id="sgTabType" placeholder="originals,new（多个用英文逗号分隔）">
+            <div style="font-size:11px;color:var(--muted);margin-top:5px">可用值：originals · new · hot · all，多个用 <code>,</code> 分隔，如 <code>originals,new</code></div>
           </div>
         </div>
 
@@ -2540,7 +2621,22 @@
           </div>
         </div>
 
-        <!-- 分区三：入口图 -->
+        <!-- 分区三：Icon 图 -->
+        <div class="bm-section">
+          <div class="bm-section-title">Icon 图</div>
+          <div id="sgIconZone" style="border:1.5px dashed var(--line);border-radius:8px;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--gray-soft)" title="点击上传 Icon 图">
+            <img id="sgIconPreview" hidden style="width:60px;height:60px;object-fit:cover;border-radius:8px;display:block">
+            <div id="sgIconPlaceholder" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px">
+              <span style="font-size:22px">🖼</span>
+              <span style="font-size:12px;color:var(--muted)">点击上传游戏 Icon 图</span>
+              <span style="font-size:11px;color:var(--muted);opacity:.7">JPG / PNG / WebP，推荐 64×64</span>
+            </div>
+            <div id="sgIconReplaceHint" hidden style="position:absolute;bottom:6px;right:8px;font-size:11px;color:var(--primary);background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--line)">点击更换</div>
+            <input type="file" id="sgIconUpload" accept="image/*" style="display:none">
+          </div>
+        </div>
+
+        <!-- 分区四：入口图 -->
         <div class="bm-section">
           <div class="bm-section-title">入口图</div>
           <div id="sgImgZone" style="border:1.5px dashed var(--line);border-radius:8px;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--gray-soft)" title="点击上传入口图">
