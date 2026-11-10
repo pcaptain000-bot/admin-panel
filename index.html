@@ -96,6 +96,10 @@
     .tag.pending { color: var(--orange); background: var(--orange-soft); }
     .tag.failed { color: var(--red); background: var(--red-soft); }
     .tag.closed { color: #6b7280; background: var(--gray-soft); }
+    .status-badge { display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; white-space:nowrap; }
+    .status-badge.success { color:var(--green); background:var(--green-soft); }
+    .status-badge.fail { color:var(--red); background:var(--red-soft); }
+    #w3Table { min-width:780px; }
     .op { display: flex; gap: 10px; white-space: nowrap; }
     .empty-row td { height: 220px; color: var(--muted); text-align: center; }
     .pagination { min-height: 60px; display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--line); color: var(--muted); }
@@ -342,7 +346,7 @@
     <button class="nav-parent"><span class="nav-label"><span class="nav-icon">⚙</span>平台管理</span><span class="chevron">⌃</span></button>
     <div class="nav-children"><a class="nav-child config-nav" href="#config" data-page="config">基础配置</a><a class="nav-child banner-nav" href="#banner" data-page="banner">Banner配置</a></div>
     <button class="nav-parent"><span class="nav-label"><span class="nav-icon">▦</span>功能配置</span><span class="chevron">⌄</span></button>
-    <div class="nav-children" hidden><a class="nav-child" href="#">钱包</a><a class="nav-child" href="#">活动</a><a class="nav-child announce-nav" href="#announce" data-page="announce">系统公告</a><a class="nav-child inbox-nav" href="#inbox" data-page="inbox">站内信</a></div>
+    <div class="nav-children" hidden><a class="nav-child web3-nav" href="#web3" data-page="web3">钱包资产管理</a><a class="nav-child" href="#">活动</a><a class="nav-child announce-nav" href="#announce" data-page="announce">系统公告</a><a class="nav-child inbox-nav" href="#inbox" data-page="inbox">站内信</a></div>
     <button class="nav-parent"><span class="nav-label"><span class="nav-icon">♜</span>游戏配置</span><span class="chevron">⌄</span></button>
     <div class="nav-children" hidden><a class="nav-child sg-nav" href="#sg" data-page="sg">自研小游戏</a><a class="nav-child tp-nav" href="#tp" data-page="tp">三方机台游戏</a></div>
     <button class="nav-parent"><span class="nav-label"><span class="nav-icon">♙</span>用户管理</span><span class="chevron">⌄</span></button>
@@ -561,9 +565,199 @@
         </div>
       </div>
     </div>
+
+    <!-- Web3钱包 — 资产链配置页 -->
+    <div class="content" id="web3PageContent" style="display:none">
+      <div class="cfg-card" style="margin-bottom:16px;padding:16px 20px">
+        <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end">
+          <div class="filter-item">
+            <label for="w3AssetFilter">资产</label>
+            <select class="select" id="w3AssetFilter">
+              <option value="">全部资产</option>
+              <option>USDT</option><option>USDC</option><option>ETH</option><option>BNB</option>
+              <option>SOL</option><option>POL</option><option>TRX</option><option>ARB</option>
+              <option>BONK</option><option>PEPE</option><option>SHIB</option><option>WIF</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label for="w3NetworkFilter">网络</label>
+            <select class="select" id="w3NetworkFilter">
+              <option value="">全部网络</option>
+              <option>BNB Smart Chain</option><option>Polygon PoS</option><option>Solana</option>
+              <option>Arbitrum One</option><option>Ethereum</option><option>Tron</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label for="w3StatusFilter">状态</label>
+            <select class="select" id="w3StatusFilter">
+              <option value="">全部状态</option>
+              <option value="normal">正常</option>
+              <option value="disabled">停用</option>
+            </select>
+          </div>
+          <div class="filter-actions" style="margin-top:0">
+            <button class="btn" id="w3ResetBtn" type="button">重置</button>
+            <button class="btn primary" id="w3SearchBtn" type="button">查询</button>
+          </div>
+        </div>
+      </div>
+      <div class="cfg-card">
+        <div class="tbl-toolbar">
+          <span style="font-weight:600;font-size:15px">资产链列表</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn primary" id="w3BasicCfgBtn" type="button">基础配置</button>
+            <button class="btn" id="w3RefreshBtn" type="button">刷新</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="w3Table">
+            <thead><tr><th>资产链</th><th>资产</th><th>网络</th><th>单笔最低充值</th><th>单笔最低提现</th><th>单笔最高提现</th><th>充值状态</th><th>提现状态</th><th>操作</th></tr></thead>
+            <tbody id="w3Tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <!-- 订单详情抽屉 -->
+  <!-- Web3 编辑弹窗 -->
+  <div class="cfg-modal-mask" id="w3EditModal">
+    <div class="cfg-modal" style="width:480px">
+      <div class="cfg-modal-hd"><h2>编辑资产链</h2><button class="cfg-close" id="closeW3EditModal" type="button">✕</button></div>
+      <div class="frm-grid">
+        <div class="frm-item span2">
+          <label>资产链</label>
+          <input class="frm-input" id="w3ef_id" disabled style="background:var(--gray-soft,#f3f4f6);color:var(--muted);cursor:not-allowed">
+        </div>
+        <div class="frm-item">
+          <label>资产</label>
+          <input class="frm-input" id="w3ef_asset" disabled style="background:var(--gray-soft,#f3f4f6);color:var(--muted);cursor:not-allowed">
+        </div>
+        <div class="frm-item">
+          <label>网络</label>
+          <input class="frm-input" id="w3ef_network" disabled style="background:var(--gray-soft,#f3f4f6);color:var(--muted);cursor:not-allowed">
+        </div>
+        <div class="frm-item span2">
+          <label>单笔最低充值</label>
+          <input class="frm-input" id="w3ef_minDeposit" type="number" min="0" step="any">
+        </div>
+        <div class="frm-item">
+          <label>单笔最低提现</label>
+          <input class="frm-input" id="w3ef_minWithdraw" type="number" min="0" step="any">
+        </div>
+        <div class="frm-item">
+          <label>单笔最高提现</label>
+          <input class="frm-input" id="w3ef_maxWithdraw" type="number" min="0" step="any">
+        </div>
+        <div class="frm-item">
+          <label>充值状态</label>
+          <select class="frm-select" id="w3ef_depositStatus">
+            <option value="normal">正常</option>
+            <option value="disabled">停用</option>
+          </select>
+        </div>
+        <div class="frm-item">
+          <label>提现状态</label>
+          <select class="frm-select" id="w3ef_withdrawStatus">
+            <option value="normal">正常</option>
+            <option value="disabled">停用</option>
+          </select>
+        </div>
+      </div>
+      <div class="cfg-modal-ft">
+        <button class="btn" type="button" id="cancelW3EditBtn">取消</button>
+        <button class="btn primary" type="button" id="saveW3EditBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Web3 手续费配置弹窗 -->
+  <div class="cfg-modal-mask" id="w3FeeModal">
+    <div class="cfg-modal" style="width:min(1000px,92vw)">
+      <div class="cfg-modal-hd"><h2>手续费</h2><button class="cfg-close" id="closeW3FeeModal" type="button">✕</button></div>
+      <div style="margin-bottom:12px"><button class="btn primary" id="w3FeeAddBtn" type="button">新增</button></div>
+      <div class="table-wrap">
+        <table id="w3FeeTable" style="table-layout:auto;width:auto;min-width:100%">
+          <thead><tr><th style="white-space:nowrap">计费方式</th><th style="white-space:nowrap">金额区间</th><th style="white-space:nowrap">基础值</th><th style="white-space:nowrap">费率</th><th style="white-space:nowrap;text-align:right;padding-left:32px">操作</th></tr></thead>
+          <tbody id="w3FeeTbody"></tbody>
+        </table>
+      </div>
+      <div class="cfg-modal-ft">
+        <button class="btn primary" type="button" id="confirmW3FeeBtn">确定</button>
+        <button class="btn" type="button" id="cancelW3FeeBtn">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Web3 手续费规则编辑弹窗 -->
+  <div class="cfg-modal-mask" id="w3FeeRuleModal">
+    <div class="cfg-modal" style="width:440px">
+      <div class="cfg-modal-hd"><h2 id="w3FeeRuleTitle">新增手续费规则</h2><button class="cfg-close" id="closeW3FeeRuleModal" type="button">✕</button></div>
+      <div class="frm-grid">
+        <div class="frm-item span2">
+          <label>计费方式</label>
+          <select class="frm-select" id="w3fr_calcType">
+            <option value="free">免手续费</option>
+            <option value="per_tx">单笔计费（固定手续费）</option>
+            <option value="percent">百分比手续费</option>
+          </select>
+        </div>
+        <div class="frm-item">
+          <label>金额 [＞]</label>
+          <input class="frm-input" id="w3fr_amtGt" type="number" min="0" step="any" placeholder="不填则不限">
+        </div>
+        <div class="frm-item">
+          <label>金额 [≤]</label>
+          <input class="frm-input" id="w3fr_amtLte" type="number" min="0" step="any" placeholder="不填则不限">
+        </div>
+        <div class="frm-item span2" id="w3fr_baseValueRow">
+          <label>基础值</label>
+          <input class="frm-input" id="w3fr_baseValue" type="number" min="0" step="any" placeholder="固定金额">
+        </div>
+        <div class="frm-item span2" id="w3fr_rateRow">
+          <label>费率</label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input class="frm-input" id="w3fr_rate" type="number" min="0" step="0.01" placeholder="如 0.03" style="flex:1">
+            <span style="font-size:15px;font-weight:500;color:var(--text,#111)">%</span>
+          </div>
+        </div>
+      </div>
+      <div class="cfg-modal-ft">
+        <button class="btn" type="button" id="cancelW3FeeRuleBtn">取消</button>
+        <button class="btn primary" type="button" id="saveW3FeeRuleBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Web3 基础配置弹窗 -->
+  <div class="cfg-modal-mask" id="w3BasicCfgModal">
+    <div class="cfg-modal" style="width:420px">
+      <div class="cfg-modal-hd"><h2>基础配置</h2><button class="cfg-close" id="closeW3BasicCfgModal" type="button">✕</button></div>
+      <div class="frm-grid">
+        <div class="frm-item span2">
+          <label>全局充值状态</label>
+          <select class="frm-select" id="w3bc_depositStatus">
+            <option value="normal">启用</option>
+            <option value="disabled">停用</option>
+          </select>
+        </div>
+        <div class="frm-item span2">
+          <label>全局提现状态</label>
+          <select class="frm-select" id="w3bc_withdrawStatus">
+            <option value="normal">启用</option>
+            <option value="disabled">停用</option>
+          </select>
+        </div>
+        <div class="frm-item span2">
+          <label>提现 pending 订单上限</label>
+          <input class="frm-input" id="w3bc_pendingLimit" type="number" min="1" step="1" placeholder="请输入上限数量">
+        </div>
+      </div>
+      <div class="cfg-modal-ft">
+        <button class="btn" type="button" id="cancelW3BasicCfgBtn">取消</button>
+        <button class="btn primary" type="button" id="saveW3BasicCfgBtn">确认</button>
+      </div>
+    </div>
+  </div>
   <div class="drawer-mask" id="drawerMask" aria-hidden="true">
     <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
       <div class="drawer-head"><h2 id="drawerTitle">订单详情</h2><button class="close" id="closeDrawer" type="button" aria-label="关闭">✕</button></div>
@@ -600,6 +794,31 @@
         { orderNo:'W202609060006', userId:'U1000195', account:'0x95B5c2d967EE27C21F9C5bd28a4924f32c7b0919', method:'虚拟币', channel:'Crypto', network:'TRC-20 (TRON)', currency:'USDT', feeCurrency:'USDT', amount:5005.3242, fee:.999865, actual:5004.3243, exchangeRate:'1 USDT = 0.9998 USD', balanceStatus:'退还扣款', status:'打款失败', audit:'人工审核通过', created:'2026-09-06 14:31:10', payTime:'2026-09-06 14:35:18', completed:'2026-09-06 14:35:18', country:'HK', vip:'VIP 5' }
       ];
 
+      const assetChainData = [
+        { id:'USDT_TRX',  asset:'USDT', network:'Tron',            minDeposit:1,    minWithdraw:5,    maxWithdraw:50000,    depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'USDT_ETH',  asset:'USDT', network:'Ethereum',        minDeposit:10,   minWithdraw:20,   maxWithdraw:10000,    depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'USDT_BNB',  asset:'USDT', network:'BNB Smart Chain', minDeposit:1,    minWithdraw:2,    maxWithdraw:50000,    depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'USDC_ETH',  asset:'USDC', network:'Ethereum',        minDeposit:10,   minWithdraw:20,   maxWithdraw:10000,    depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'USDC_SOL',  asset:'USDC', network:'Solana',          minDeposit:1,    minWithdraw:1,    maxWithdraw:100000,   depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'ETH_ETH',   asset:'ETH',  network:'Ethereum',        minDeposit:0.01, minWithdraw:0.02, maxWithdraw:100,      depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'BNB_BNB',   asset:'BNB',  network:'BNB Smart Chain', minDeposit:0.01, minWithdraw:0.01, maxWithdraw:500,      depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'SOL_SOL',   asset:'SOL',  network:'Solana',          minDeposit:0.1,  minWithdraw:0.1,  maxWithdraw:5000,     depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'POL_POL',   asset:'POL',  network:'Polygon PoS',     minDeposit:1,    minWithdraw:2,    maxWithdraw:100000,   depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'TRX_TRX',   asset:'TRX',  network:'Tron',            minDeposit:10,   minWithdraw:20,   maxWithdraw:500000,   depositStatus:'disabled', withdrawStatus:'disabled' },
+        { id:'ARB_ARB',   asset:'ARB',  network:'Arbitrum One',    minDeposit:1,    minWithdraw:2,    maxWithdraw:100000,   depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'BONK_SOL',  asset:'BONK', network:'Solana',          minDeposit:1000, minWithdraw:5000, maxWithdraw:10000000, depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'PEPE_ETH',  asset:'PEPE', network:'Ethereum',        minDeposit:1000, minWithdraw:5000, maxWithdraw:5000000,  depositStatus:'disabled', withdrawStatus:'disabled' },
+        { id:'SHIB_ETH',  asset:'SHIB', network:'Ethereum',        minDeposit:1000, minWithdraw:5000, maxWithdraw:5000000,  depositStatus:'normal',   withdrawStatus:'normal'   },
+        { id:'WIF_SOL',   asset:'WIF',  network:'Solana',          minDeposit:1,    minWithdraw:1,    maxWithdraw:50000,    depositStatus:'normal',   withdrawStatus:'normal'   },
+      ];
+
+      const feeRules = {
+        'USDT_TRX': [
+          { id:1, calcType:'per_tx',  amtGt:null, amtLte:100,  baseValue:1,    rate:null },
+          { id:2, calcType:'percent', amtGt:100,  amtLte:null, baseValue:null, rate:0.03 },
+        ],
+      };
+
       const configs = {
         payment: {
           title:'支付订单', table:'支付订单列表', methodLabel:'支付方式', accountLabel:'支付账户', orderLabel:'子订单号',
@@ -616,7 +835,7 @@
           head:['提现订单号','用户 ID','VIP 等级','申请金额','手续费','实际到账','提现方式','提现账户','提现渠道','打款时间','订单状态','审核状态','创建时间','操作']
         }
       };
-      let currentPage = location.hash === '#withdrawal' ? 'withdrawal' : location.hash === '#config' ? 'config' : 'payment';
+      let currentPage = location.hash === '#withdrawal' ? 'withdrawal' : location.hash === '#config' ? 'config' : location.hash === '#web3' ? 'web3' : location.hash === '#banner' ? 'banner' : location.hash === '#sg' ? 'sg' : location.hash === '#tp' ? 'tp' : location.hash === '#announce' ? 'announce' : location.hash === '#inbox' ? 'inbox' : 'payment';
       let visibleRows = [];
       let _sbDocListenerAdded = false;
       const _sbHandlers = {};
@@ -2003,7 +2222,7 @@
         }
       }
 
-      document.querySelectorAll('.order-nav,.config-nav,.banner-nav,.sg-nav,.tp-nav,.announce-nav,.inbox-nav').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
+      document.querySelectorAll('.order-nav,.config-nav,.banner-nav,.sg-nav,.tp-nav,.announce-nav,.inbox-nav,.web3-nav').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
         if (page === 'config') {
           bindSidebarEvents();
           orderContent.style.display = 'none';
@@ -2012,6 +2231,7 @@
           document.getElementById('tpPageContent').style.display = 'none';
           document.getElementById('announcePageContent').style.display = 'none';
           document.getElementById('inboxPageContent').style.display = 'none';
+          document.getElementById('web3PageContent').style.display = 'none';
           configContent.style.display = 'block';
           document.getElementById('pageTip').style.display = 'none';
           els.pageTitle.textContent = '基础配置';
@@ -2028,6 +2248,7 @@
           document.getElementById('tpPageContent').style.display = 'none';
           document.getElementById('announcePageContent').style.display = 'none';
           document.getElementById('inboxPageContent').style.display = 'none';
+          document.getElementById('web3PageContent').style.display = 'none';
           document.getElementById('pageTip').style.display = 'none';
           els.pageTitle.textContent = 'Banner 配置';
           els.breadcrumb.textContent = '首页 / 平台管理 / Banner 配置';
@@ -2044,6 +2265,7 @@
           document.getElementById('tpPageContent').style.display = 'none';
           document.getElementById('announcePageContent').style.display = 'none';
           document.getElementById('inboxPageContent').style.display = 'none';
+          document.getElementById('web3PageContent').style.display = 'none';
           document.getElementById('pageTip').style.display = 'none';
           els.pageTitle.textContent = '自研小游戏';
           els.breadcrumb.textContent = '首页 / 游戏配置 / 自研小游戏';
@@ -2060,6 +2282,7 @@
           document.getElementById('tpPageContent').style.display = 'block';
           document.getElementById('announcePageContent').style.display = 'none';
           document.getElementById('inboxPageContent').style.display = 'none';
+          document.getElementById('web3PageContent').style.display = 'none';
           document.getElementById('pageTip').style.display = 'none';
           els.pageTitle.textContent = '三方机台游戏';
           els.breadcrumb.textContent = '首页 / 游戏配置 / 三方机台游戏';
@@ -2076,6 +2299,7 @@
           document.getElementById('tpPageContent').style.display = 'none';
           document.getElementById('announcePageContent').style.display = 'block';
           document.getElementById('inboxPageContent').style.display = 'none';
+          document.getElementById('web3PageContent').style.display = 'none';
           document.getElementById('pageTip').style.display = 'none';
           els.pageTitle.textContent = '系统公告';
           els.breadcrumb.textContent = '首页 / 功能配置 / 系统公告';
@@ -2092,12 +2316,29 @@
           document.getElementById('tpPageContent').style.display = 'none';
           document.getElementById('announcePageContent').style.display = 'none';
           document.getElementById('inboxPageContent').style.display = 'block';
+          document.getElementById('web3PageContent').style.display = 'none';
           document.getElementById('pageTip').style.display = 'none';
           els.pageTitle.textContent = '站内信';
           els.breadcrumb.textContent = '首页 / 功能配置 / 站内信';
           document.title = 'CC管理后台 - 站内信';
           bindInboxEvents();
           renderInboxTable();
+          return;
+        }
+        if (page === 'web3') {
+          orderContent.style.display = 'none';
+          configContent.style.display = 'none';
+          document.getElementById('bannerPageContent').style.display = 'none';
+          document.getElementById('sgPageContent').style.display = 'none';
+          document.getElementById('tpPageContent').style.display = 'none';
+          document.getElementById('announcePageContent').style.display = 'none';
+          document.getElementById('inboxPageContent').style.display = 'none';
+          document.getElementById('web3PageContent').style.display = 'block';
+          document.getElementById('pageTip').style.display = 'none';
+          els.pageTitle.textContent = '钱包资产管理';
+          els.breadcrumb.textContent = '首页 / 功能配置 / 钱包资产管理';
+          document.title = 'CC管理后台 - 钱包资产管理';
+          renderW3Table();
           return;
         }
         orderContent.style.display = 'block';
@@ -2107,6 +2348,7 @@
         document.getElementById('tpPageContent').style.display = 'none';
         document.getElementById('announcePageContent').style.display = 'none';
         document.getElementById('inboxPageContent').style.display = 'none';
+        document.getElementById('web3PageContent').style.display = 'none';
         document.getElementById('pageTip').style.display = '';
         const config = configs[page];
         els.pageTitle.textContent = config.title;
@@ -2376,7 +2618,7 @@
         showToast('当前筛选结果已导出');
       }
 
-      document.querySelectorAll('.order-nav,.config-nav,.banner-nav,.sg-nav,.tp-nav,.announce-nav,.inbox-nav').forEach(nav => nav.addEventListener('click', e => { e.preventDefault(); history.replaceState(null,'',`#${nav.dataset.page}`); switchPage(nav.dataset.page); els.sidebar.classList.remove('open'); }));
+      document.querySelectorAll('.order-nav,.config-nav,.banner-nav,.sg-nav,.tp-nav,.announce-nav,.inbox-nav,.web3-nav').forEach(nav => nav.addEventListener('click', e => { e.preventDefault(); history.replaceState(null,'',`#${nav.dataset.page}`); switchPage(nav.dataset.page); els.sidebar.classList.remove('open'); }));
       document.querySelectorAll('.nav-parent').forEach(btn => btn.addEventListener('click', () => { const group = btn.nextElementSibling; if (!group?.classList.contains('nav-children')) return; group.hidden = !group.hidden; btn.querySelector('.chevron').textContent = group.hidden ? '⌄' : '⌃'; }));
       document.getElementById('searchBtn').addEventListener('click', query);
       document.getElementById('resetBtn').addEventListener('click', () => { resetFilters(); showToast('筛选条件已重置'); });
@@ -2404,6 +2646,199 @@
         if (e.key === 'Enter' && document.activeElement?.matches('.input,.select')) query();
       });
       switchPage(currentPage);
+
+      // ── Web3钱包 — 资产链配置 ──────────────────────────────────────────────
+      function renderW3Table() {
+        const asset   = document.getElementById('w3AssetFilter').value;
+        const network = document.getElementById('w3NetworkFilter').value;
+        const status  = document.getElementById('w3StatusFilter').value;
+        const rows = assetChainData.filter(r =>
+          (!asset   || r.asset   === asset)   &&
+          (!network || r.network === network) &&
+          (!status  || r.depositStatus === status || r.withdrawStatus === status)
+        );
+        document.getElementById('w3Tbody').innerHTML = rows.map(r => `
+          <tr>
+            <td>${r.id}</td>
+            <td>${r.asset}</td>
+            <td>${r.network}</td>
+            <td>${r.minDeposit}</td>
+            <td>${r.minWithdraw}</td>
+            <td>${r.maxWithdraw}</td>
+            <td><span class="status-badge ${r.depositStatus  === 'normal' ? 'success' : 'fail'}">${r.depositStatus  === 'normal' ? '正常' : '停用'}</span></td>
+            <td><span class="status-badge ${r.withdrawStatus === 'normal' ? 'success' : 'fail'}">${r.withdrawStatus === 'normal' ? '正常' : '停用'}</span></td>
+            <td><div class="op">
+              <button class="btn link" data-w3-edit="${r.id}">编辑</button>
+              <button class="btn link" data-w3-fee="${r.id}">手续费配置</button>
+            </div></td>
+          </tr>
+        `).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">暂无数据</td></tr>';
+      }
+
+      function openW3Edit(id) {
+        const r = assetChainData.find(x => x.id === id);
+        if (!r) return;
+        document.getElementById('w3ef_id').value             = r.id;
+        document.getElementById('w3ef_asset').value          = r.asset;
+        document.getElementById('w3ef_network').value        = r.network;
+        document.getElementById('w3ef_minDeposit').value     = r.minDeposit;
+        document.getElementById('w3ef_minWithdraw').value    = r.minWithdraw;
+        document.getElementById('w3ef_maxWithdraw').value    = r.maxWithdraw;
+        document.getElementById('w3ef_depositStatus').value  = r.depositStatus;
+        document.getElementById('w3ef_withdrawStatus').value = r.withdrawStatus;
+        document.getElementById('w3EditModal').classList.add('open');
+      }
+
+      document.getElementById('saveW3EditBtn').onclick = function() {
+        const id = document.getElementById('w3ef_id').value;
+        const r = assetChainData.find(x => x.id === id);
+        if (!r) return;
+        r.minDeposit     = parseFloat(document.getElementById('w3ef_minDeposit').value)  || 0;
+        r.minWithdraw    = parseFloat(document.getElementById('w3ef_minWithdraw').value) || 0;
+        r.maxWithdraw    = parseFloat(document.getElementById('w3ef_maxWithdraw').value) || 0;
+        r.depositStatus  = document.getElementById('w3ef_depositStatus').value;
+        r.withdrawStatus = document.getElementById('w3ef_withdrawStatus').value;
+        document.getElementById('w3EditModal').classList.remove('open');
+        renderW3Table();
+      };
+
+      ['closeW3EditModal','cancelW3EditBtn'].forEach(id =>
+        document.getElementById(id).onclick = () => document.getElementById('w3EditModal').classList.remove('open'));
+
+      document.getElementById('web3PageContent').addEventListener('click', e => {
+        const editBtn = e.target.closest('[data-w3-edit]');
+        if (editBtn) { openW3Edit(editBtn.dataset.w3Edit); return; }
+        const feeBtn = e.target.closest('[data-w3-fee]');
+        if (feeBtn)  { openW3Fee(feeBtn.dataset.w3Fee);   return; }
+      });
+
+      document.getElementById('w3FeeModal').addEventListener('click', e => {
+        const editBtn = e.target.closest('[data-w3fee-edit]');
+        if (editBtn) { editW3FeeRule(parseInt(editBtn.dataset.w3feeEdit)); return; }
+        const delBtn = e.target.closest('[data-w3fee-del]');
+        if (delBtn)  { deleteW3FeeRule(parseInt(delBtn.dataset.w3feeDel)); return; }
+      });
+
+      let w3CurrentFeeId = null;
+      let w3TempFeeRules = [];
+      let w3EditingRuleIdx = -1;
+
+      function openW3Fee(id) {
+        w3CurrentFeeId = id;
+        w3TempFeeRules = JSON.parse(JSON.stringify(feeRules[id] || []));
+        renderW3FeeTable();
+        document.getElementById('w3FeeModal').classList.add('open');
+      }
+
+      function renderW3FeeTable() {
+        const calcLabel = { free:'免手续费', per_tx:'单笔计费', percent:'百分比计费' };
+        const badgeStyle = { free:'background:#e0f2fe;color:#0369a1', per_tx:'background:#dbeafe;color:#1d4ed8', percent:'background:#fef9c3;color:#854d0e' };
+        document.getElementById('w3FeeTbody').innerHTML = w3TempFeeRules.map((r, i) => {
+          const amtGt  = r.amtGt  != null ? r.amtGt  : '';
+          const amtLte = r.amtLte != null ? r.amtLte : '';
+          const amtRange = (amtGt !== '' || amtLte !== '') ? `${amtGt !== '' ? '＞'+amtGt : ''}${amtGt !== '' && amtLte !== '' ? ' ' : ''}${amtLte !== '' ? '≤'+amtLte : ''}` : '不限';
+          return `
+          <tr>
+            <td><span style="display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px;${badgeStyle[r.calcType]||''}">${calcLabel[r.calcType]||r.calcType}</span></td>
+            <td style="color:var(--muted);font-size:12px">${amtRange}</td>
+            <td>${r.calcType === 'per_tx' && r.baseValue != null ? r.baseValue : '/'}</td>
+            <td>${r.calcType === 'free' ? '/' : r.calcType === 'percent' ? r.rate+'%' : '/'}</td>
+            <td style="text-align:right;white-space:nowrap"><div class="op" style="justify-content:flex-end">
+              <button class="btn link" data-w3fee-edit="${i}">编辑</button>
+              <button class="btn link" style="color:var(--red)" data-w3fee-del="${i}">删除</button>
+            </div></td>
+          </tr>`;
+        }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">暂无规则，请点击新增</td></tr>';
+      }
+
+      document.getElementById('w3FeeAddBtn').onclick = function() {
+        w3EditingRuleIdx = -1;
+        document.getElementById('w3FeeRuleTitle').textContent = '新增手续费规则';
+        document.getElementById('w3fr_calcType').value  = 'per_tx';
+        document.getElementById('w3fr_amtGt').value     = '';
+        document.getElementById('w3fr_amtLte').value    = '';
+        document.getElementById('w3fr_baseValue').value = '';
+        document.getElementById('w3fr_rate').value      = '';
+        updateW3FeeFields('per_tx');
+        document.getElementById('w3FeeRuleModal').classList.add('open');
+      };
+
+      function editW3FeeRule(idx) {
+        w3EditingRuleIdx = idx;
+        const r = w3TempFeeRules[idx];
+        document.getElementById('w3FeeRuleTitle').textContent = '编辑手续费规则';
+        document.getElementById('w3fr_calcType').value  = r.calcType;
+        document.getElementById('w3fr_amtGt').value     = r.amtGt  != null ? r.amtGt  : '';
+        document.getElementById('w3fr_amtLte').value    = r.amtLte != null ? r.amtLte : '';
+        document.getElementById('w3fr_baseValue').value = r.baseValue != null ? r.baseValue : '';
+        document.getElementById('w3fr_rate').value      = r.rate != null ? r.rate : '';
+        updateW3FeeFields(r.calcType);
+        document.getElementById('w3FeeRuleModal').classList.add('open');
+      }
+
+      function deleteW3FeeRule(idx) {
+        w3TempFeeRules.splice(idx, 1);
+        renderW3FeeTable();
+      }
+
+      function updateW3FeeFields(calcType) {
+        document.getElementById('w3fr_baseValueRow').hidden = calcType !== 'per_tx';
+        document.getElementById('w3fr_rateRow').hidden      = calcType !== 'percent';
+      }
+
+      document.getElementById('w3fr_calcType').addEventListener('change', function() {
+        updateW3FeeFields(this.value);
+      });
+
+      document.getElementById('saveW3FeeRuleBtn').onclick = function() {
+        const calcType  = document.getElementById('w3fr_calcType').value;
+        const amtGt     = document.getElementById('w3fr_amtGt').value  !== '' ? parseFloat(document.getElementById('w3fr_amtGt').value)  : null;
+        const amtLte    = document.getElementById('w3fr_amtLte').value !== '' ? parseFloat(document.getElementById('w3fr_amtLte').value) : null;
+        const baseValue = calcType === 'per_tx'  ? (parseFloat(document.getElementById('w3fr_baseValue').value) || 0) : null;
+        const rate      = calcType === 'percent' ? (parseFloat(document.getElementById('w3fr_rate').value)      || 0) : null;
+        const rule = { id: Date.now(), calcType, amtGt, amtLte, baseValue, rate };
+        if (w3EditingRuleIdx >= 0) {
+          w3TempFeeRules[w3EditingRuleIdx] = rule;
+        } else {
+          w3TempFeeRules.push(rule);
+        }
+        document.getElementById('w3FeeRuleModal').classList.remove('open');
+        renderW3FeeTable();
+      };
+
+      document.getElementById('confirmW3FeeBtn').onclick = function() {
+        feeRules[w3CurrentFeeId] = JSON.parse(JSON.stringify(w3TempFeeRules));
+        document.getElementById('w3FeeModal').classList.remove('open');
+      };
+
+      ['closeW3FeeModal','cancelW3FeeBtn'].forEach(id =>
+        document.getElementById(id).onclick = () => document.getElementById('w3FeeModal').classList.remove('open'));
+      ['closeW3FeeRuleModal','cancelW3FeeRuleBtn'].forEach(id =>
+        document.getElementById(id).onclick = () => document.getElementById('w3FeeRuleModal').classList.remove('open'));
+
+      document.getElementById('w3SearchBtn').onclick  = renderW3Table;
+      document.getElementById('w3ResetBtn').onclick   = function() {
+        ['w3AssetFilter','w3NetworkFilter','w3StatusFilter'].forEach(id => document.getElementById(id).value = '');
+        renderW3Table();
+      };
+      document.getElementById('w3RefreshBtn').onclick = renderW3Table;
+
+      let w3BasicCfgData = { depositStatus: 'normal', withdrawStatus: 'normal', pendingLimit: '' };
+      document.getElementById('w3BasicCfgBtn').onclick = function() {
+        document.getElementById('w3bc_depositStatus').value  = w3BasicCfgData.depositStatus;
+        document.getElementById('w3bc_withdrawStatus').value = w3BasicCfgData.withdrawStatus;
+        document.getElementById('w3bc_pendingLimit').value   = w3BasicCfgData.pendingLimit;
+        document.getElementById('w3BasicCfgModal').classList.add('open');
+      };
+      document.getElementById('saveW3BasicCfgBtn').onclick = function() {
+        w3BasicCfgData.depositStatus  = document.getElementById('w3bc_depositStatus').value;
+        w3BasicCfgData.withdrawStatus = document.getElementById('w3bc_withdrawStatus').value;
+        w3BasicCfgData.pendingLimit   = document.getElementById('w3bc_pendingLimit').value;
+        document.getElementById('w3BasicCfgModal').classList.remove('open');
+      };
+      ['closeW3BasicCfgModal','cancelW3BasicCfgBtn'].forEach(id =>
+        document.getElementById(id).onclick = () => document.getElementById('w3BasicCfgModal').classList.remove('open'));
+      // ────────────────────────────────────────────────────────────────────────
     })();
   </script>
 
